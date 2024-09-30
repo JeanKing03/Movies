@@ -19,4 +19,5 @@ routerMovie.route("/:id/directors").post(setDirectors);
 routerMovie.route("/:id/genres").post(setGenres);
 
 routerMovie.route("/:id").get(getOne).put(update).delete(destroy);
+
 module.exports = routerMovie;
