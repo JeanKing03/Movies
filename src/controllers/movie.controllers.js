@@ -1,22 +1,28 @@
+const {
+  createServices,
+  getAllServices,
+  getOneServices,
+  updateServices,
+  removeServices,
+  setDirectorsServices,
+  setActorsServices,
+  setGenresServices,
+} = require("../services/movie.services");
 const catchError = require("../utils/catchError");
-const Movie = require("../models/Movie");
-const Actor = require("../models/Actor");
-const Director = require("../models/Director");
-const Genre = require("../models/Genre");
 
 const create = catchError(async (req, res) => {
-  const results = await Movie.create(req.body);
+  const results = await createServices(req.body);
   return res.status(201).json(results);
 });
 
 const getAll = catchError(async (req, res) => {
-  const results = await Movie.findAll({ include: [Actor, Director, Genre] });
+  const results = await getAllServices();
   return res.status(200).json(results);
 });
 
 const getOne = catchError(async (req, res) => {
   const { id } = req.params;
-  const results = await Movie.findByPk(id, { include: [Actor] });
+  const results = await getOneServices(id);
   if (!results)
     return res.status(404).json({ message: "The Movie Does Not Exist!" });
   return res.status(200).json(results);
@@ -24,41 +30,35 @@ const getOne = catchError(async (req, res) => {
 
 const update = catchError(async (req, res) => {
   const { id } = req.params;
-  const results = await Movie.update(req.body, {
-    where: { id },
-    returning: true,
-  });
+  const results = await updateServices(req.body, id);
   if (results[0] === 0)
     return res.status(404).json({ message: "Movie Not Found!" });
-  return res.status(200).json(results[1]);
+  return res.status(200).json(results[1][0]);
 });
 
 const destroy = catchError(async (req, res) => {
   const { id } = req.params;
-  const results = await Movie.destroy({ where: { id } });
-  return res.json(results);
+  await removeServices(id);
+  return res.sendStatus(204);
 });
 
 const setActors = catchError(async (req, res) => {
   const { id } = req.params;
-  const movies = await Movie.findByPk(id);
-  await movies.setActors(req.body);
-  const actors = await movies.getActors();
+  const movie = await setActorsServices(id, req.body);
+  const actors = await movie.getActors();
   return res.json(actors);
 });
 
 const setDirectors = catchError(async (req, res) => {
   const { id } = req.params;
-  const movies = await Movie.findByPk(id);
-  await movies.setDirectors(req.body);
-  const directors = await movies.getDirectors();
-  return res.status(200).json(directors);
+  const movie = await setDirectorsServices(id, req.body);
+  const directors = await movie.getDirectors();
+  return res.json(directors);
 });
 
 const setGenres = catchError(async (req, res) => {
   const { id } = req.params;
-  const movies = await Movie.findByPk(id);
-  await movies.setGenres(req.body);
+  const movies = await setGenresServices(id, req.body);
   const genres = await movies.getGenres();
   return res.json(genres);
 });
